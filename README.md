@@ -24,8 +24,11 @@ Intall the YOLOModule
    3.If success, default in the /usr/local/lib/,we could see generate a so file named libcaffe2_yolo_ops_gpu.so.
 
 The init_net.pb and predict_net.pb is convert from the original model https://pjreddie.com/media/files/yolov3.weights.
+The Model file download link is: https://pan.baidu.com/s/1ykYOJgMVXlgACXMC5jAMOQ Password：2z6t
 
-CPPDemo
+CPPDemo:In the cppDemo folder
   
-PythonDemo
+PythonDemo: demo.py demo1.py
+
+Has problem with using, please make a issue.
 
