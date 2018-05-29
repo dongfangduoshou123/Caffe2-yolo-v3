@@ -3,6 +3,8 @@ A Caffe2 implementation of a YOLO v3 Object Detector
 
 This repository contains code for a object detector based on YOLOv3: An Incremental Improvement, implementedin Caffe2. The code is based on the official code of YOLO v3.
 
+Now Only support Inference with CUDA support, train is not Provided yet.
+
 
 Implement YOLO v3 from scratch
 
