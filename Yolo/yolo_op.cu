@@ -28,7 +28,7 @@ __global__ void SigmoidKernel(const int N, const T* x, T* y) {
 }
 
 template <typename T>
-__global__ void GenerateGridKernel(const int N, const int w,const int h,T* out1/*,T* out2*/) {
+__global__ void GenerateGridXKernel(const int N, const int w,const int h,T* out1/*,T* out2*/) {
 //    int index = 0;
   CUDA_1D_KERNEL_LOOP(i, N) {
     out1[i] = out1[i] + i%w;   
@@ -40,9 +40,17 @@ __global__ void GenerateGridKernel(const int N, const int w,const int h,T* out1/
 }
 
 template <typename T>
-__global__ void thtwKernel(const int N, T* x,T* y) {
+__global__ void GenerateGridYKernel(const int N, const int w,const int h,T* out1/*,T* out2*/) {
   CUDA_1D_KERNEL_LOOP(i, N) {
-          y[i] = exp(y[i])*x[i];
+    out1[i] = out1[i] + int((i+0.0001)/h);
+  }
+}
+
+template <typename T>
+__global__ void thtwKernel(const int N,const int batch,const int w,const int h, T* x,T* y1,T* y2,int offset) {
+  CUDA_1D_KERNEL_LOOP(i, N) {
+          y1[i] = exp(y1[i])*x[i/(batch*h*w)];
+          y2[i] = exp(y2[i])*x[i/(batch*h*w) + offset];
   }
 }
 
@@ -128,18 +136,15 @@ bool YoloOp<float,CUDAContext>::RunOnDevice() {
     std::vector<int>sp;
     sp.push_back(batch*this->anchor_mask_.size()*h*w);
     tx->Reshape(sp);
-    GenerateGridKernel<float><<<CAFFE_GET_BLOCKS(h*w*batch*this->anchor_mask_.size()),CAFFE_CUDA_NUM_THREADS,
+    GenerateGridXKernel<float><<<CAFFE_GET_BLOCKS(h*w*batch*this->anchor_mask_.size()),CAFFE_CUDA_NUM_THREADS,
             0,context_.cuda_stream()>>>(h*w*this->anchor_mask_.size()*batch,w,h,
-                                        tx->template mutable_data<float>()/*,ty->template mutable_data<float>()*/);
-    std::vector<float>ty_host;
-    this->GetTensorToHost(ty,ty_host);
-    for(int i =0;i < batch*h*w*this->anchor_mask_.size()/(h*w);i++){
-        for(int j = 0;j < h*w;j ++){
-            ty_host[j +i*h*w] = ty_host[j + i*h*w] + j/h;
-        }
-    }
+                                        tx->template mutable_data<float>());
 
-    this->SetDeviceTensor(ty_host,ty);
+    for(int i = 0;i <batch*this->anchor_mask_.size();i++){
+        GenerateGridYKernel<float><<<CAFFE_GET_BLOCKS(h*w),CAFFE_CUDA_NUM_THREADS,
+                0,context_.cuda_stream()>>>(h*w,w,h,
+                                            ty->template mutable_data<float>() + i*h*w);
+    }
 
 
     std::vector<float>aw,ah;
@@ -148,33 +153,27 @@ bool YoloOp<float,CUDAContext>::RunOnDevice() {
         aw.push_back(this->masked_anchor_[ind]);
         ah.push_back(this->masked_anchor_[ind + 1]);
     }
-    std::vector<float>anchor_w,anchor_h;
-    tmp_blob->CopyFrom(*tx);
-    for(int i = 0;i < h*w*batch*this->anchor_mask_.size();i ++){
-        anchor_w.push_back(aw[i/(h*w*batch)]);
-        anchor_h.push_back(ah[i/(h*w*batch)]);
-    }
-    this->SetDeviceTensor(anchor_w,tmp_blob);
+    this->SetDeviceTensor(aw,tmp_blob);
+    this->SetDeviceTensor(ah,tmp_blob,this->anchor_mask_.size());
     thtwKernel<float><<<CAFFE_GET_BLOCKS(h*w*batch*this->anchor_mask_.size()),CAFFE_CUDA_NUM_THREADS,
-            0,context_.cuda_stream()>>>(h*w*this->anchor_mask_.size()*batch,tmp_blob->template mutable_data<float>(),tw->template mutable_data<float>());
-    this->SetDeviceTensor(anchor_h,tmp_blob);
-    thtwKernel<float><<<CAFFE_GET_BLOCKS(h*w*batch*this->anchor_mask_.size()),CAFFE_CUDA_NUM_THREADS,
-            0,context_.cuda_stream()>>>(h*w*this->anchor_mask_.size()*batch,tmp_blob->template mutable_data<float>(),th->template mutable_data<float>());
+            0,context_.cuda_stream()>>>(h*w*this->anchor_mask_.size()*batch,batch,w,h,tmp_blob->template mutable_data<float>(),
+                                        tw->template mutable_data<float>(),th->template mutable_data<float>(),this->anchor_mask_.size());
 
+//    thtwKernel<float><<<CAFFE_GET_BLOCKS(h*w*batch*this->anchor_mask_.size()),CAFFE_CUDA_NUM_THREADS,
+//            0,context_.cuda_stream()>>>(h*w*this->anchor_mask_.size()*batch,batch,w,h,tmp_blob->template mutable_data<float>(),th->template mutable_data<float>());
 
-
-    std::vector<int>psp;
-    psp.push_back(batch*this->anchor_mask_.size());
-    psp.push_back(this->numclass_);
-    psp.push_back(h*w);
-    class_prob->Reshape(psp);
-    computeMaxConfIndex(class_prob);
-    GetTensorToHost(tx,this->tx_);
-    GetTensorToHost(ty,this->ty_);
-    GetTensorToHost(th,this->th_);
-    GetTensorToHost(tw,this->tw_);
-    GetTensorToHost(det_conf,this->det_conf_);
-    GetYoloBoxes();
+//    std::vector<int>psp;
+//    psp.push_back(batch*this->anchor_mask_.size());
+//    psp.push_back(this->numclass_);
+//    psp.push_back(h*w);
+//    class_prob->Reshape(psp);
+//    computeMaxConfIndex(class_prob);
+//    GetTensorToHost(tx,this->tx_);
+//    GetTensorToHost(ty,this->ty_);
+//    GetTensorToHost(th,this->th_);
+//    GetTensorToHost(tw,this->tw_);
+//    GetTensorToHost(det_conf,this->det_conf_);
+//    GetYoloBoxes();
     tx->Reshape(shape);
     return true;
 }
