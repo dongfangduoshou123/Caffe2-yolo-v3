@@ -16,7 +16,8 @@ Requirements
     Caffe2
 
 Intall the YOLOModule
-  Assume　you have already installed the Caffe2 from source.
+
+  Assume you have already installed the Caffe2 from source.
   
       1. Make the yolo op as a module:If your Caffe2 older one(https://github.com/caffe2/caffe2),cut the Yolo folder to the Caffe2-master/modules;if your Caffe2 is newer(https://github.com/pytorch/pytorch)cut the Yolo folder to the pytorch-master/modules,the open the CMakeList in the modules folder and add a line with content add_subdirectory(Yolo),and close it.
 
