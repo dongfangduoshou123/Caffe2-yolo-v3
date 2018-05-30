@@ -37,10 +37,14 @@ The Model file download link is: https://pan.baidu.com/s/1ykYOJgMVXlgACXMC5jAMOQ
 
 CPPDemo:In the cppDemo folder
 please four variable init_net\predict_net\coconame_path\test_img as your real path in the main.cpp.
-    std::string init_net = "/opt/caffe2_yolov3/init_net.pb";
-    std::string predict_net = "/opt/caffe2_yolov3/predict_net.pb";
-    std::string coconame_path = "/home/yoloCaffe2/cppDemo/coco.names";
-    std::string test_img = "/home/yoloCaffe2/cppDemo/dog.jpg";
+
+        std::string init_net = "/opt/caffe2_yolov3/init_net.pb";
+
+        std::string predict_net = "/opt/caffe2_yolov3/predict_net.pb";
+
+        std::string coconame_path = "/home/yoloCaffe2/cppDemo/coco.names";
+
+        std::string test_img = "/home/yoloCaffe2/cppDemo/dog.jpg";
   
 PythonDemo: demo.py demo1.py
 
