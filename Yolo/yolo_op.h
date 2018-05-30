@@ -46,10 +46,10 @@ public:
     }
 
     bool RunOnDevice() override;
-    void SetDeviceTensor(const std::vector<float>& data, Tensor<Context>* tensor) {
+    void SetDeviceTensor(const std::vector<float>& data, Tensor<Context>* tensor,long offset = 0) {
         tensor->Resize(data.size());
         context_.template Copy<float, CPUContext, Context>(
-        data.size(), data.data(), tensor->template mutable_data<float>());
+        data.size(), data.data(), tensor->template mutable_data<float>() + offset);
     }
     void GetTensorToHost(const Tensor<Context>* tensor,std::vector<float>& data ) {
         data.resize(tensor->size());
