@@ -233,43 +233,6 @@ def plot_boxes(img, boxes, savename=None, class_names=None):
     cv2.imshow("demo", sh)
     cv2.waitKey(5)
     return img
-def logistic_activate(x):
-    return 1./(1. + exp(-x))
-
-def softmax(x):
-    return np.exp(x)/np.sum(np.exp(x),axis=0)
-
-def parse_cfg(cfgfile):
-    blocks = []
-    fp = open(cfgfile, 'r')
-    block =  None
-    line = fp.readline()
-    while line != '':
-        line = line.rstrip()
-        if line == '' or line[0] == '#':
-            line = fp.readline()
-            continue
-        elif line[0] == '[':
-            if block:
-                blocks.append(block)
-            block = dict()
-            block['type'] = line.lstrip('[').rstrip(']')
-            # set default value
-            if block['type'] == 'convolutional':
-                block['batch_normalize'] = 0
-        else:
-            key,value = line.split('=')
-            key = key.strip()
-            if key == 'type':
-                key = '_type'
-            value = value.strip()
-            block[key] = value
-        line = fp.readline()
-
-    if block:
-        blocks.append(block)
-    fp.close()
-    return blocks
 
 def UnscopeName(possibly_scoped_name):
     """Remove any name scoping from a (possibly) scoped name. For example,
@@ -277,15 +240,3 @@ def UnscopeName(possibly_scoped_name):
     assert isinstance(possibly_scoped_name, string_types)
     return possibly_scoped_name[
         possibly_scoped_name.rfind(scope._NAMESCOPE_SEPARATOR) + 1:]
-
- # img = Image.open('/home/wzq/LabelMe2CocoDataset/traindata/video1/decoded_img_48349.jpg').convert('RGB')
-    # sized = img.resize((416,416))
-    # if isinstance(sized, Image.Image):
-    #     width = sized.width
-    #     height = sized.height
-    #     sized = torch.ByteTensor(torch.ByteStorage.from_buffer(sized.tobytes()))
-    #     sized = sized.view(height, width, 3).transpose(0,1).transpose(0,2).contiguous()
-    #     sized = sized.view(1, 3, height, width)
-    #     sized = sized.float().div(255.0)
-    # npar = sized.numpy().astype(np.float32)
-    # print npar
