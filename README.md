@@ -5,10 +5,6 @@ This repository contains code for a object detector based on YOLOv3: An Incremen
 
 Now Only support Inference with CUDA support, train is not Provided yet.
 
-
-Implement YOLO v3 from scratch
-
-Now, the code only contains the detection module,(training module code may be come on later.)
 Requirements
 
     Python 2.7
