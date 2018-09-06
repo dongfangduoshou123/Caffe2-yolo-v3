@@ -191,4 +191,4 @@ class GetYoloGradient : public GradientMakerBase {
 
 REGISTER_GRADIENT(Yolo, GetYoloGradient);
 
-} //namespace caffe2
+} //namespace caffe2 
