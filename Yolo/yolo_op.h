@@ -46,18 +46,18 @@ public:
     }
 
     bool RunOnDevice() override;
-    void SetDeviceTensor(const std::vector<float>& data, Tensor<Context>* tensor,long offset = 0) {
+    void SetDeviceTensor(const std::vector<float>& data, Tensor* tensor,long offset = 0) {
         tensor->Resize(data.size());
         context_.template Copy<float, CPUContext, Context>(
         data.size(), data.data(), tensor->template mutable_data<float>() + offset);
     }
-    void GetTensorToHost(const Tensor<Context>* tensor,std::vector<float>& data ) {
+    void GetTensorToHost(const Tensor* tensor,std::vector<float>& data ) {
         data.resize(tensor->size());
         context_.template Copy<float,Context,CPUContext>(
                     data.size(),tensor->template data<float>(),data.data());
 
     }
-    void computeMaxConfIndex(Tensor<Context>* tensor){
+    void computeMaxConfIndex(Tensor* tensor){
         std::vector<float>data;
         GetTensorToHost(tensor,data);
         maxConfIndex_.resize(tensor->dim(0));
