@@ -35,6 +35,7 @@ public:
           numclass_(OperatorBase::GetSingleArgument<int>("numclass",80)),
           numanchors_(OperatorBase::GetSingleArgument<int>("numanchors",9)),
           stride_(OperatorBase::GetSingleArgument<int>("stride",16)),
+          is_train(OperatorBase::GetSingleArgument<bool>("is_train",false)),
           conf_thresh_(OperatorBase::GetSingleArgument<float>("conf_thresh",0.6)){
           anchor_step_ = anchors_.size() / numanchors_;
           for(int i = 0;i < anchor_mask_.size();i++){
@@ -46,10 +47,10 @@ public:
     }
 
     bool RunOnDevice() override;
-    void SetDeviceTensor(const std::vector<float>& data, Tensor* tensor,long offset = 0) {
+    void SetDeviceTensor(const std::vector<float>& data, Tensor* tensor) {
         tensor->Resize(data.size());
         context_.template Copy<float, CPUContext, Context>(
-        data.size(), data.data(), tensor->template mutable_data<float>() + offset);
+        data.size(), data.data(), tensor->template mutable_data<float>());
     }
     void GetTensorToHost(const Tensor* tensor,std::vector<float>& data ) {
         data.resize(tensor->size());
@@ -123,6 +124,8 @@ protected:
     int batch_;
     int h_;
     int w_;
+    bool is_train = false;
+    float ignore_thresh = 0.5;
 
     std::vector<float>masked_anchor_;
 
@@ -140,6 +143,17 @@ class YoloGradientOp final: public Operator<Context> {
 public:
  USE_SIMPLE_CTOR_DTOR(YoloGradientOp);
  USE_OPERATOR_CONTEXT_FUNCTIONS;
+ void SetDeviceTensor(const std::vector<float>& data, Tensor* tensor) {
+     tensor->Resize(data.size());
+     context_.template Copy<float, CPUContext, Context>(
+     data.size(), data.data(), tensor->template mutable_data<float>());
+ }
+ void GetTensorToHost(const Tensor* tensor,std::vector<float>& data ) {
+     data.resize(tensor->size());
+     context_.template Copy<float,Context,CPUContext>(
+                 data.size(),tensor->template data<float>(),data.data());
+
+ }
 
  bool RunOnDevice() override;
 };
